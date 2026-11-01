@@ -131,7 +131,7 @@ class DeviceChannelSensor(CoordinatorEntity, SensorEntity):
         return value
 
     @property
-    def native_unit_of_measurement(self) -> str:
+    def native_unit_of_measurement(self) -> str | None:
         """Return the unit of measurement of this entity, if any."""
 
         channel_raw: dict[str, Any] = self._coordinator.data[self._node_id][
@@ -139,6 +139,11 @@ class DeviceChannelSensor(CoordinatorEntity, SensorEntity):
         ][self._input_type][self._id]
 
         unit: str = channel_raw["unit"]
+
+        # ta_cmi returns "" or "Unknown" for channels without a known unit.
+        # HA must get None, otherwise the recorder statistics unit keeps changing.
+        if not unit or unit == "Unknown":
+            return None
 
         return unit
 
